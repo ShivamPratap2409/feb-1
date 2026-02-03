@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be My Valentine? 💖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;800&family=Pacifico&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- RESET & VARIABLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #ffe6e6; /* Soft pastel pink */
+            font-family: 'Nunito', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevents scrollbars when button moves */
+            position: relative;
+        }
+
+        /* --- BACKGROUND FLOATING HEARTS --- */
+        .bg-heart {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.6);
+            animation: floatBackground 10s infinite linear;
+            z-index: -1;
+            user-select: none;
+        }
+
+        @keyframes floatBackground {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .container {
+            text-align: center;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
+            transition: all 0.5s ease;
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: #ff4d6d;
+            font-size: 3rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        p.subtext {
+            color: #ff758f;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: none; /* Hidden until success */
+        }
+
+        /* --- BUTTONS WRAPPER --- */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            min-height: 60px; /* Reserve space */
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        /* --- YES BUTTON STYLE --- */
+        #yes-btn {
+            background-color: #ff4d6d;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        #yes-btn:hover {
+            transform: scale(1.1);
+            background-color: #ff3355;
+            box-shadow: 0 0 20px rgba(255, 77, 109, 0.6);
+        }
+
+        /* --- NO BUTTON STYLE --- */
+        #no-btn {
+            background-color: white;
+            color: #ff4d6d;
+            border: 2px solid #ff4d6d;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            /* Important for movement logic */
+            position: absolute; 
+            /* Start it relative to the flex container visually, 
+               but we will manipulate left/top */
+        }
+
+        /* To position No button correctly initially next to Yes */
+        .buttons button:last-child {
+            position: relative;
+        }
+
+        /* --- SUCCESS ANIMATION STATES --- */
+        .hidden {
+            display: none !important;
+        }
+        
+        .visible {
+            display: block !important;
+        }
+
+        /* --- CONFETTI --- */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall 3s linear forwards;
+            z-index: 100;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="heart-bg"></div>
+
+    <div class="container">
+        <h1 id="main-text">Will you be my Valentine? 💖</h1>
+        <p id="success-msg" class="subtext">I knew you'd say yes! You're stuck with me now! 🥰</p>
+        
+        <div class="buttons">
+            <button id="yes-btn" onclick="sayYes()">YES 💕</button>
+            <button id="no-btn">NO 😅</button>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const mainText = document.getElementById('main-text');
+        const successMsg = document.getElementById('success-msg');
+        const container = document.querySelector('.container');
+
+        /* --------------------------------------------------
+           LOGIC: THE RUNAWAY BUTTON
+           -------------------------------------------------- */
+        
+        // We use 'mouseover' for desktop and 'touchstart' for mobile 
+        // to ensure the user can never actually click/tap it.
+        
+        const moveButton = () => {
+            // 1. Get the viewport dimensions
+            const containerRect = document.body.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            // 2. Calculate random positions
+            // We subtract the button size to ensure it doesn't go off-screen
+            const maxX = containerRect.width - btnRect.width;
+            const maxY = containerRect.height - btnRect.height;
+
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            // 3. Apply the new position
+            // We switch to 'fixed' positioning to allow it to roam the whole screen
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            
+            // 4. Add a little rotation for playfulness
+            const randomRotate = Math.floor(Math.random() * 20) - 10;
+            noBtn.style.transform = `rotate(${randomRotate}deg)`;
+        };
+
+        noBtn.addEventListener('mouseover', moveButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent tap
+            moveButton();
+        });
+
+        /* --------------------------------------------------
+           LOGIC: THE "YES" CELEBRATION
+           -------------------------------------------------- */
+        
+        function sayYes() {
+            // 1. Hide the buttons
+            yesBtn.style.display = 'none';
+            noBtn.style.display = 'none';
+
+            // 2. Change text
+            mainText.innerText = "YAY! ❤️";
+            successMsg.style.display = 'block';
+
+            // 3. Trigger Confetti
+            createConfetti();
+
+            // 4. Subtle scale animation for container
+            container.style.transform = "scale(1.1)";
+        }
+
+        /* --------------------------------------------------
+           LOGIC: VISUAL EFFECTS (CONFETTI & BG)
+           -------------------------------------------------- */
+        
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // Randomize position and color
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                
+                // Random heart shape using text or CSS
+                confetti.innerHTML = '❤️';
+                confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
+                confetti.style.background = 'transparent';
+
+                document.body.appendChild(confetti);
+
+                // Cleanup
+                setTimeout(() => {
+                    confetti.remove();
+                }, 4000);
+            }
+        }
+
+        // Create initial background floating hearts
+        function createBgHearts() {
+            const bgContainer = document.getElementById('heart-bg');
+            for(let i=0; i<15; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('bg-heart');
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * 30 + 10 + 'px';
+                heart.style.animationDuration = Math.random() * 5 + 5 + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                document.body.appendChild(heart);
+            }
+        }
+
+        // Initialize background
+        createBgHearts();
+
+    </script>
+</body>
+</html>
